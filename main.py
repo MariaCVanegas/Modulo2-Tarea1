@@ -69,10 +69,7 @@ async def create_user(user: UserCreate):
     if cursor.fetchone():
         raise HTTPException(status_code=409, detail="El email ya está registrado")
 
-    cursor.execute(
-        "INSERT INTO users (username, email) VALUES (%s, %s)",
-        (user.username, user.email),
-    )
+    cursor.execute("INSERT INTO users (username, email) VALUES (%s, %s)", (user.username, user.email))
     db.commit()
     new_id = cursor.lastrowid
     cursor.close()
@@ -121,26 +118,6 @@ async def delete_user(user_id: int):
 # --------- PREFERENCIAS ---------- #
 # --------------------------------- #
 
-@app.get("/users/{user_id}/preferences")
-async def get_preferences(user_id: int):
-    db = get_db_connection()
-    cursor = db.cursor()
-
-    # Verificar que el usuario existe
-    get_user_or_404(cursor, user_id)
-
-    cursor.execute(
-        "SELECT streamer, category FROM preferences WHERE user_id = %s", (user_id,)
-    )
-    row = cursor.fetchone()
-    cursor.close()
-    db.close()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="Este usuario no tiene preferencias guardadas")
-    return {"user_id": user_id, "streamer": row[0], "category": row[1]}
-
-
 @app.put("/users/{user_id}/preferences", status_code=201)
 async def save_preferences(user_id: int, preference: PreferenceCreate):
     db = get_db_connection()
@@ -151,14 +128,29 @@ async def save_preferences(user_id: int, preference: PreferenceCreate):
 
     # Reemplazar preferencia existente si ya tiene una
     cursor.execute("DELETE FROM preferences WHERE user_id = %s", (user_id,))
-    cursor.execute(
-        "INSERT INTO preferences (user_id, streamer, category) VALUES (%s, %s, %s)",
-        (user_id, preference.streamer, preference.category),
-    )
+    cursor.execute("INSERT INTO preferences (user_id, streamer, category) VALUES (%s, %s, %s)", (user_id, preference.streamer, preference.category))
     db.commit()
     cursor.close()
     db.close()
     return {"user_id": user_id, "streamer": preference.streamer, "category": preference.category}
+
+
+@app.get("/users/{user_id}/preferences")
+async def get_preferences(user_id: int):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Verificar que el usuario existe
+    get_user_or_404(cursor, user_id)
+
+    cursor.execute("SELECT streamer, category FROM preferences WHERE user_id = %s", (user_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    db.close()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Este usuario no tiene preferencias guardadas")
+    return {"user_id": user_id, "streamer": row[0], "category": row[1]}
 
 
 @app.delete("/users/{user_id}/preferences", status_code=204)
@@ -166,6 +158,7 @@ async def delete_preferences(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
 
+    # Verificar que el usuario existe
     get_user_or_404(cursor, user_id)
 
     cursor.execute("DELETE FROM preferences WHERE user_id = %s", (user_id,))
