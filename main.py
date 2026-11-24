@@ -69,6 +69,11 @@ async def create_user(user: UserCreate):
     if cursor.fetchone():
         raise HTTPException(status_code=409, detail="El email ya está registrado")
 
+    # Verificar que el username no esté registrado
+    cursor.execute("SELECT id FROM users WHERE username = %s", (user.username,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=409, detail="El nombre de usuario ya está registrado")
+
     cursor.execute("INSERT INTO users (username, email) VALUES (%s, %s)", (user.username, user.email))
     db.commit()
     new_id = cursor.lastrowid
@@ -88,6 +93,12 @@ async def update_user(user_id: int, data: UserUpdate):
     changes = data.model_dump(exclude_none=True)
     if not changes:
         raise HTTPException(status_code=400, detail="No se enviaron campos para actualizar")
+
+    # Verificar que el nuevo username no esté tomado por otro usuario
+    if "username" in changes:
+        cursor.execute("SELECT id FROM users WHERE username = %s AND id != %s", (changes["username"], user_id))
+        if cursor.fetchone():
+            raise HTTPException(status_code=409, detail="El nombre de usuario ya está registrado")
 
     fields = ", ".join(f"{key} = %s" for key in changes)
     values = list(changes.values()) + [user_id]
