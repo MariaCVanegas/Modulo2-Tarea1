@@ -38,27 +38,6 @@ class PreferenceCreate(BaseModel):
 # ------------ USUARIOS ----------- #
 # --------------------------------- #
 
-@app.get("/users")
-async def list_users():
-    db = get_db_connection()
-    cursor = db.cursor()
-    cursor.execute("SELECT id, username, email FROM users")
-    users = [{"id": row[0], "username": row[1], "email": row[2]} for row in cursor.fetchall()]
-    cursor.close()
-    db.close()
-    return users
-
-
-@app.get("/users/{user_id}")
-async def get_user(user_id: int):
-    db = get_db_connection()
-    cursor = db.cursor()
-    user = get_user_or_404(cursor, user_id)
-    cursor.close()
-    db.close()
-    return user
-
-
 @app.post("/users", status_code=201)
 async def create_user(user: UserCreate):
     db = get_db_connection()
@@ -81,6 +60,26 @@ async def create_user(user: UserCreate):
     db.close()
     return JSONResponse(content={"id": new_id, "username": user.username, "email": user.email}, status_code=201)
 
+
+@app.get("/users")
+async def list_users():
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("SELECT id, username, email FROM users")
+    users = [{"id": row[0], "username": row[1], "email": row[2]} for row in cursor.fetchall()]
+    cursor.close()
+    db.close()
+    return users
+
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    db = get_db_connection()
+    cursor = db.cursor()
+    user = get_user_or_404(cursor, user_id)
+    cursor.close()
+    db.close()
+    return user
 
 @app.patch("/users/{user_id}")
 async def update_user(user_id: int, data: UserUpdate):
