@@ -27,6 +27,8 @@ def get_streamer(login: str):
     client_id = os.getenv("TWITCH_CLIENT_ID")
     token = _get_access_token()
 
+    # Los logins de Twitch no tienen espacios, si se pone un espacio rompe la URL y arroja un 502, por eso se eliminan los espacios antes de hacer la petición.
+    login = login.strip().replace(" ", "")
     url = f"https://api.twitch.tv/helix/users?login={login}"
     response = httpx.get(url, headers={"Client-Id": client_id, "Authorization": f"Bearer {token}"})
     if response.status_code != 200:

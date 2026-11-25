@@ -110,7 +110,7 @@ async def update_user(user_id: int, data: UserUpdate):
     return updated_user
 
 
-@app.delete("/users/{user_id}", status_code=204, tags=["Usuarios"])
+@app.delete("/users/{user_id}", tags=["Usuarios"])
 async def delete_user(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -122,6 +122,7 @@ async def delete_user(user_id: int):
     db.commit()
     cursor.close()
     db.close()
+    return {"message": "Usuario eliminado con éxito"}
 
 
 # --------------------------------- #
@@ -153,17 +154,22 @@ async def get_preferences(user_id: int):
     # Verificar que el usuario existe
     get_user_or_404(cursor, user_id)
 
-    cursor.execute("SELECT streamer, category FROM preferences WHERE user_id = %s", (user_id,))
+    cursor.execute("""
+        SELECT u.id, u.username, u.email, p.streamer, p.category
+        FROM users u
+        JOIN preferences p ON u.id = p.user_id
+        WHERE u.id = %s
+    """, (user_id,))
     row = cursor.fetchone()
     cursor.close()
     db.close()
 
     if not row:
         raise HTTPException(status_code=404, detail="Este usuario no tiene preferencias guardadas")
-    return {"user_id": user_id, "streamer": row[0], "category": row[1]}
+    return {"id": row[0], "username": row[1], "email": row[2], "streamer": row[3], "category": row[4]}
 
 
-@app.delete("/users/{user_id}/preferences", status_code=204, tags=["Preferencias"])
+@app.delete("/users/{user_id}/preferences", tags=["Preferencias"])
 async def delete_preferences(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -175,6 +181,7 @@ async def delete_preferences(user_id: int):
     db.commit()
     cursor.close()
     db.close()
+    return {"message": "Preferencias eliminadas con éxito"}
 
 
 # --------------------------------- #
