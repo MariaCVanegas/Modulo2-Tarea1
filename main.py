@@ -38,7 +38,7 @@ class PreferenceCreate(BaseModel):
 # ------------ USUARIOS ----------- #
 # --------------------------------- #
 
-@app.post("/users", status_code=201)
+@app.post("/users", status_code=201, tags=["Usuarios"])
 async def create_user(user: UserCreate):
     db = get_db_connection()
     cursor = db.cursor()
@@ -61,7 +61,7 @@ async def create_user(user: UserCreate):
     return JSONResponse(content={"id": new_id, "username": user.username, "email": user.email}, status_code=201)
 
 
-@app.get("/users")
+@app.get("/users", tags=["Usuarios"])
 async def list_users():
     db = get_db_connection()
     cursor = db.cursor()
@@ -72,7 +72,7 @@ async def list_users():
     return users
 
 
-@app.get("/users/{user_id}")
+@app.get("/users/{user_id}", tags=["Usuarios"])
 async def get_user(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -81,7 +81,7 @@ async def get_user(user_id: int):
     db.close()
     return user
 
-@app.patch("/users/{user_id}")
+@app.patch("/users/{user_id}", tags=["Usuarios"])
 async def update_user(user_id: int, data: UserUpdate):
     db = get_db_connection()
     cursor = db.cursor()
@@ -110,7 +110,7 @@ async def update_user(user_id: int, data: UserUpdate):
     return updated_user
 
 
-@app.delete("/users/{user_id}", status_code=204)
+@app.delete("/users/{user_id}", status_code=204, tags=["Usuarios"])
 async def delete_user(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -128,7 +128,7 @@ async def delete_user(user_id: int):
 # --------- PREFERENCIAS ---------- #
 # --------------------------------- #
 
-@app.put("/users/{user_id}/preferences", status_code=201)
+@app.put("/users/{user_id}/preferences", status_code=201, tags=["Preferencias"])
 async def save_preferences(user_id: int, preference: PreferenceCreate):
     db = get_db_connection()
     cursor = db.cursor()
@@ -145,7 +145,7 @@ async def save_preferences(user_id: int, preference: PreferenceCreate):
     return {"user_id": user_id, "streamer": preference.streamer, "category": preference.category}
 
 
-@app.get("/users/{user_id}/preferences")
+@app.get("/users/{user_id}/preferences", tags=["Preferencias"])
 async def get_preferences(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -163,7 +163,7 @@ async def get_preferences(user_id: int):
     return {"user_id": user_id, "streamer": row[0], "category": row[1]}
 
 
-@app.delete("/users/{user_id}/preferences", status_code=204)
+@app.delete("/users/{user_id}/preferences", status_code=204, tags=["Preferencias"])
 async def delete_preferences(user_id: int):
     db = get_db_connection()
     cursor = db.cursor()
@@ -181,6 +181,6 @@ async def delete_preferences(user_id: int):
 # ------------ TWITCH ------------- #
 # --------------------------------- #
 
-@app.get("/twitch/streamers/{login}")
+@app.get("/twitch/streamers/{login}", tags=["Twitch"])
 async def get_twitch_streamer(login: str):
     return get_streamer(login)
